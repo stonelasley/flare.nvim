@@ -18,10 +18,10 @@ describe("utils", function()
         "foo",
       }
       local actual = sut.table_contains(t, "foo")
-      -- local actual2 = sut.table_contains(t, "bar")
+      local actual2 = sut.table_contains(t, "bar")
 
       assert.is.True(actual)
-      -- assert.is.False(actual2)
+      assert.is.False(actual2)
     end)
   end)
 
