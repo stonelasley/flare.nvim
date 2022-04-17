@@ -23,7 +23,8 @@ local options = {
   },
 }
 
-local highlight = function(buffer_number, ns_id, line_num, cursor_line, lcol)
+local highlight = function(buffer_number, ns_id, line_num, lcol)
+  local cursor_line = utils.get_current_line()
   for i = options.expanse, 1, -1 do
     local left_bound = lcol - i
     if left_bound < 0 then
@@ -102,7 +103,6 @@ flare.cursor_moved = function(args, force)
   local buffer_number = vim.fn.bufnr "%"
   local ns_id = vim.api.nvim_create_namespace(namespace_name)
 
-  local cursor_line = utils.get_current_line()
   local lcol = utils.win_get_cursor_col(0)
   if should_highlight(buffer_number, line_num, lcol, forced) ~= true then
     snapshot_cursor()
@@ -111,7 +111,7 @@ flare.cursor_moved = function(args, force)
     snapshot_cursor()
   end
 
-  local status, err = pcall(highlight, buffer_number, ns_id, line_num, cursor_line, lcol)
+  local status, err = pcall(highlight, buffer_number, ns_id, line_num, lcol)
   if err ~= nil then
     utils.dump(err)
   end
