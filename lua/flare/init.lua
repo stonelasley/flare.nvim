@@ -55,6 +55,13 @@ local highlightable_y_motion = function(cursor_row)
   return line_diff <= options.y_threshold
 end
 
+local highlightable_x_motion = function(cursor_col)
+  local last_col = last_cursor_col or 0
+  local current_col = cursor_col or 0
+  local cursor_diff = math.abs(last_col - current_col)
+  return cursor_diff > options.x_threshold
+end
+
 local should_highlight = function(cursor_row, cursor_col, cursor_row_length, force)
   if options.enabled ~= true then
     return false
@@ -74,10 +81,7 @@ local should_highlight = function(cursor_row, cursor_col, cursor_row_length, for
   end
 
   if highlightable_y_motion(cursor_row) then
-    local last_col = last_cursor_col or 0
-    local current_col = cursor_col or 0
-    local cursor_diff = math.abs(last_col - current_col)
-    if cursor_diff > options.x_threshold then
+    if highlightable_x_motion(cursor_col) then
       return true
     end
     return false
