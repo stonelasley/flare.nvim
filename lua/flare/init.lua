@@ -12,7 +12,8 @@ local namespace_name = "flare"
 local options = {
   enabled = true,
   hl_group = "IncSearch",
-  min_lines = 5,
+  x_threshold = 5,
+  y_threshold = 5,
   expanse = 20,
   file_ignore = {
     "NvimTree",
@@ -46,7 +47,7 @@ local highlight = function(buffer_number, ns_id, line_num, cursor_line, lcol)
   end
 end
 
-local should_highlight = function(buffer_number, cursor_line, force)
+local should_highlight = function(buffer_number, cursor_row, cursor_col, force)
   if options.enabled ~= true then
     return
   end
@@ -65,13 +66,19 @@ local should_highlight = function(buffer_number, cursor_line, force)
   end
 
   local last_line = last_cursor_line or -1
-  local current_line = cursor_line or -1
+  local current_line = cursor_row or -1
   local line_diff = math.abs(last_line - current_line)
-  utils.dump(line_diff)
 
-  if line_diff <= options.min_lines then
+  if line_diff <= options.y_threshold then
+    local last_col = last_cursor_col or -1
+    local current_col = cursor_col or -1
+    local cursor_diff = math.abs(last_col - current_col)
+    if cursor_diff > options.x_threshold then
+      return true
+    end
     return false
   end
+
   return true
 end
 
@@ -93,17 +100,16 @@ flare.cursor_moved = function(args, force)
   local forced = force or false
   local line_num = vim.fn.line "."
   local buffer_number = vim.fn.bufnr "%"
-  if should_highlight(buffer_number, line_num, forced) ~= true then
+  local ns_id = vim.api.nvim_create_namespace(namespace_name)
+
+  local cursor_line = utils.get_current_line()
+  local lcol = utils.win_get_cursor_col(0)
+  if should_highlight(buffer_number, line_num, lcol, forced) ~= true then
     snapshot_cursor()
     return
   else
     snapshot_cursor()
   end
-
-  local ns_id = vim.api.nvim_create_namespace(namespace_name)
-
-  local cursor_line = utils.get_current_line()
-  local lcol = utils.win_get_cursor_col(0)
 
   local status, err = pcall(highlight, buffer_number, ns_id, line_num, cursor_line, lcol)
   if err ~= nil then
