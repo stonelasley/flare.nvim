@@ -2,7 +2,7 @@
 
 Configurable cursor highlighting using neovims virtual text.
 
-![Preview](https://user-images.githubusercontent.com/1717836/163735234-550e3c01-51cc-448e-9c82-2cbd7554601c.gif)
+![Preview](https://user-images.githubusercontent.com/1717836/163735786-bbbcb23f-662a-4213-a2c4-b84440766324.gif)
 
 ## Installation
 
