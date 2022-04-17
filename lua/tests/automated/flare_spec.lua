@@ -87,6 +87,44 @@ describe("flare", function()
     end)
   end)
 
+  describe("highlightable_x_motion", function()
+    it("should respect x_threshold setting", function()
+      sut.setup { x_threshold = 2 }
+
+      local actual = sut.highlightable_x_motion(0, 0, 0, 0)
+      assert.is.False(actual)
+      actual = sut.highlightable_x_motion(0, 0, 0, 3)
+      assert.is.True(actual)
+      actual = sut.highlightable_x_motion(0, 0, 0, 2)
+      assert.is.False(actual)
+      actual = sut.highlightable_x_motion(0, 0, 0, 99)
+      assert.is.True(actual)
+    end)
+
+    it("should not flash on y motion that force x motion", function()
+      sut.setup { x_threshold = 2 }
+
+      sut.highlightable_x_motion(0, 0, 25, 0)
+      local jump_to_empty_line = sut.highlightable_x_motion(1, 0, 0, 25)
+      assert.is.False(jump_to_empty_line)
+    end)
+  end)
+
+  describe("highlightable_y_motion", function()
+    it("should respect y_threshold setting", function()
+      sut.setup { y_threshold = 2 }
+
+      local actual = sut.highlightable_y_motion(0, 0)
+      assert.is.False(actual)
+      actual = sut.highlightable_y_motion(3, 0)
+      assert.is.True(actual)
+      actual = sut.highlightable_y_motion(1, 0)
+      assert.is.False(actual)
+      actual = sut.highlightable_y_motion(99, 0)
+      assert.is.True(actual)
+    end)
+  end)
+
   describe("cursor_move", function()
     -- it("should respect enabled setting", function()
     --   local cursor_stub = stub(vim.api, "nvim_win_get_cursor", { 0, 0 })

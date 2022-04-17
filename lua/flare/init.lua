@@ -3,9 +3,9 @@ local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
 
 local flare = {}
-local last_cursor_line = nil
-local last_cursor_line_length = nil
-local last_cursor_col = nil
+local last_cursor_row = 0
+local last_cursor_line_length = 0
+local last_cursor_col = 0
 local last_buffer = nil
 
 local namespace_name = "flare"
@@ -15,7 +15,7 @@ local options = {
   hl_group = "IncSearch",
   x_threshold = 5,
   y_threshold = 5,
-  expanse = 20,
+  expanse = 10,
   file_ignore = {
     "NvimTree",
     "fugitive",
@@ -48,14 +48,17 @@ local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol
   end
 end
 
-local highlightable_y_motion = function(cursor_row)
+flare.highlightable_y_motion = function(cursor_row, last_cursor_line)
   local last_line = last_cursor_line or 0
   local current_line = cursor_row or 0
   local line_diff = math.abs(last_line - current_line)
-  return line_diff <= options.y_threshold
+  return line_diff >= options.y_threshold
 end
 
-local highlightable_x_motion = function(cursor_col)
+flare.highlightable_x_motion = function(cursor_row, last_cursor_line, cursor_col, last_cursor_col)
+  if cursor_row ~= last_cursor_line then
+    return false
+  end
   local last_col = last_cursor_col or 0
   local current_col = cursor_col or 0
   local cursor_diff = math.abs(last_col - current_col)
@@ -80,8 +83,8 @@ local should_highlight = function(cursor_row, cursor_col, cursor_row_length, for
     return true
   end
 
-  if highlightable_y_motion(cursor_row) then
-    if highlightable_x_motion(cursor_col) then
+  if not flare.highlightable_y_motion(cursor_row, last_cursor_row) then
+    if flare.highlightable_x_motion(cursor_row, last_cursor_row, cursor_col, last_cursor_col) then
       return true
     end
     return false
@@ -91,17 +94,18 @@ local should_highlight = function(cursor_row, cursor_col, cursor_row_length, for
 end
 
 local snapshot_cursor = function()
-  local r, c = unpack(utils.win_get_cursor(0))
+  local row, col = unpack(utils.win_get_cursor(0))
 
   last_buffer = vim.fn.bufnr "%"
   last_cursor_line_length = #utils.get_current_line()
-  last_cursor_line = r
-  last_cursor_col = c
+  last_cursor_row = row
+  last_cursor_col = col
 end
 
 local clear_history = function()
   last_buffer = nil
-  last_cursor_line = nil
+  last_cursor_line_length = 0
+  last_cursor_row = nil
   last_cursor_col = nil
 end
 
