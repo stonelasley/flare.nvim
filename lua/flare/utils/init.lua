@@ -19,6 +19,10 @@ utils.get_current_line = function()
   return a.nvim_get_current_line()
 end
 
+utils.filetype = function()
+  return vim.bo.filetype
+end
+
 utils.table_contains = function(tbl, val)
   for index, value in ipairs(tbl) do
     if value == val then

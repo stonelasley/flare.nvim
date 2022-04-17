@@ -4,6 +4,7 @@ local augroup = vim.api.nvim_create_augroup
 
 local flare = {}
 local last_cursor_line = nil
+local last_cursor_line_length = nil
 local last_cursor_col = nil
 local last_buffer = nil
 
@@ -23,8 +24,7 @@ local options = {
   },
 }
 
-local highlight = function(buffer_number, ns_id, line_num, lcol)
-  local current_row_str = utils.get_current_line()
+local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol)
   for i = options.expanse, 1, -1 do
     local left_bound = (lcol - i)
     local right_bound = lcol + i
@@ -48,9 +48,9 @@ local highlight = function(buffer_number, ns_id, line_num, lcol)
   end
 end
 
-local should_highlight = function(buffer_number, cursor_row, cursor_col, force)
+local should_highlight = function(cursor_row, cursor_col, cursor_row_length, force)
   if options.enabled ~= true then
-    return
+    return false
   end
   local floating = utils.is_floating_window(0)
   if floating == true then
@@ -58,7 +58,7 @@ local should_highlight = function(buffer_number, cursor_row, cursor_col, force)
   end
 
   local ignores = options.file_ignore or {}
-  if utils.table_contains(ignores, vim.bo.filetype) then
+  if utils.table_contains(ignores, utils.filetype()) then
     return false
   end
 
@@ -66,13 +66,13 @@ local should_highlight = function(buffer_number, cursor_row, cursor_col, force)
     return true
   end
 
-  local last_line = last_cursor_line or -1
-  local current_line = cursor_row or -1
+  local last_line = last_cursor_line or 0
+  local current_line = cursor_row or 0
   local line_diff = math.abs(last_line - current_line)
 
   if line_diff <= options.y_threshold then
-    local last_col = last_cursor_col or -1
-    local current_col = cursor_col or -1
+    local last_col = last_cursor_col or 0
+    local current_col = cursor_col or 0
     local cursor_diff = math.abs(last_col - current_col)
     if cursor_diff > options.x_threshold then
       return true
@@ -87,6 +87,7 @@ local snapshot_cursor = function()
   local r, c = unpack(utils.win_get_cursor(0))
 
   last_buffer = vim.fn.bufnr "%"
+  last_cursor_line_length = #utils.get_current_line()
   last_cursor_line = r
   last_cursor_col = c
 end
@@ -100,18 +101,18 @@ end
 flare.cursor_moved = function(args, force)
   local forced = force or false
   local cursor_row, cursor_col = unpack(utils.win_get_cursor(0))
-  utils.dump({ cursor_row, cursor_col })
+  local current_row_str = utils.get_current_line()
   local buffer_number = vim.fn.bufnr "%"
   local ns_id = vim.api.nvim_create_namespace(namespace_name)
 
-  if should_highlight(buffer_number, cursor_row, cursor_col, forced) ~= true then
+  if should_highlight(cursor_row, cursor_col, #current_row_str, forced) ~= true then
     snapshot_cursor()
     return
   else
     snapshot_cursor()
   end
 
-  local status, err = pcall(highlight, buffer_number, ns_id, cursor_row, cursor_col)
+  local status, err = pcall(highlight, buffer_number, ns_id, current_row_str, cursor_row, cursor_col)
   if err ~= nil then
     utils.dump(err)
   end
@@ -154,4 +155,6 @@ flare.setup = function(opts)
   })
 end
 
+flare._should_highlight = should_highlight
+flare._options = options
 return flare
