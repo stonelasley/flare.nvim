@@ -123,23 +123,7 @@ flare.setup = function(opts)
 
   augroup("flare", { clear = true })
 
-  autocmd("BufWinEnter", {
-    pattern = { "*" },
-    callback = function(args)
-      flare.cursor_moved(args, true)
-    end,
-    group = "flare",
-  })
-
-  autocmd("FocusGained", {
-    pattern = { "*" },
-    callback = function(args)
-      flare.cursor_moved(args, true)
-    end,
-    group = "flare",
-  })
-
-  autocmd("BufEnter", {
+  autocmd({ "BufWinEnter", "FocusGained", "BufEnter" }, {
     pattern = { "*" },
     callback = function(args)
       flare.cursor_moved(args, true)
