@@ -48,6 +48,13 @@ local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol
   end
 end
 
+local highlightable_y_motion = function(cursor_row)
+  local last_line = last_cursor_line or 0
+  local current_line = cursor_row or 0
+  local line_diff = math.abs(last_line - current_line)
+  return line_diff <= options.y_threshold
+end
+
 local should_highlight = function(cursor_row, cursor_col, cursor_row_length, force)
   if options.enabled ~= true then
     return false
@@ -66,11 +73,7 @@ local should_highlight = function(cursor_row, cursor_col, cursor_row_length, for
     return true
   end
 
-  local last_line = last_cursor_line or 0
-  local current_line = cursor_row or 0
-  local line_diff = math.abs(last_line - current_line)
-
-  if line_diff <= options.y_threshold then
+  if highlightable_y_motion(cursor_row) then
     local last_col = last_cursor_col or 0
     local current_col = cursor_col or 0
     local cursor_diff = math.abs(last_col - current_col)
