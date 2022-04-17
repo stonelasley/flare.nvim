@@ -4,9 +4,7 @@ local augroup = vim.api.nvim_create_augroup
 
 local flare = {}
 local last_cursor_row = 0
-local last_cursor_line_length = 0
 local last_cursor_col = 0
-local last_buffer = nil
 
 local namespace_name = "flare"
 
@@ -95,18 +93,8 @@ end
 
 local snapshot_cursor = function()
   local row, col = unpack(utils.win_get_cursor(0))
-
-  last_buffer = vim.fn.bufnr "%"
-  last_cursor_line_length = #utils.get_current_line()
   last_cursor_row = row
   last_cursor_col = col
-end
-
-local clear_history = function()
-  last_buffer = nil
-  last_cursor_line_length = 0
-  last_cursor_row = nil
-  last_cursor_col = nil
 end
 
 flare.cursor_moved = function(args, force)
