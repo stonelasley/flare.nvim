@@ -12,9 +12,11 @@ local namespace_name = "flare"
 local options = {
   enabled = true,
   hl_group = "IncSearch",
-  expanse = 6,
+  min_lines = 5,
+  expanse = 20,
   file_ignore = {
     "NvimTree",
+    "fugitive",
     "TelescopePrompt",
     "TelescopeResult",
   },
@@ -28,7 +30,6 @@ local highlight = function(buffer_number, ns_id, line_num, cursor_line, lcol)
     end
     local right_bound = lcol + i
 
-    --local lchar = cursor_line:sub(lcol + 1, lcol + 1)
     local lstr = cursor_line:sub(left_bound + 1, right_bound + 1)
     if lstr == nil or lstr == "" then
       lstr = utils.empty_str(i)
@@ -39,13 +40,13 @@ local highlight = function(buffer_number, ns_id, line_num, cursor_line, lcol)
       hl_mode = "blend",
     }
     local mark_id = vim.api.nvim_buf_set_extmark(buffer_number, ns_id, line_num - 1, left_bound, opts)
-    vim.fn.timer_start(math.floor(200 / i), function()
+    vim.fn.timer_start(math.floor(250 / i), function()
       vim.api.nvim_buf_del_extmark(buffer_number, ns_id, mark_id)
     end)
   end
 end
 
-local should_highlight = function(cursor_line)
+local should_highlight = function(buffer_number, cursor_line, force)
   if options.enabled ~= true then
     return
   end
@@ -59,20 +60,27 @@ local should_highlight = function(cursor_line)
     return false
   end
 
-  -- local last_line = last_cursor_line or -1
-  -- local current_line = cursor_line or -1
-  -- local line_diff = math.abs(last_line - current_line)
-  -- utils.dump(line_dif)
-  -- if line_diff == 0 then
-  --   return false
-  -- end
+  if force == true then
+    return true
+  end
+
+  local last_line = last_cursor_line or -1
+  local current_line = cursor_line or -1
+  local line_diff = math.abs(last_line - current_line)
+  utils.dump(line_diff)
+
+  if line_diff <= options.min_lines then
+    return false
+  end
   return true
 end
 
-local set_history = function(buffer, line, col)
-  last_buffer = buffer
-  last_cursor_line = line
-  last_cursor_col = col
+local snapshot_cursor = function()
+  local r, c = unpack(utils.win_get_cursor(0))
+
+  last_buffer = vim.fn.bufnr "%"
+  last_cursor_line = r
+  last_cursor_col = c
 end
 
 local clear_history = function()
@@ -81,14 +89,18 @@ local clear_history = function()
   last_cursor_col = nil
 end
 
-flare.cursor_moved = function(args)
-  if should_highlight() ~= true then
+flare.cursor_moved = function(args, force)
+  local forced = force or false
+  local line_num = vim.fn.line "."
+  local buffer_number = vim.fn.bufnr "%"
+  if should_highlight(buffer_number, line_num, forced) ~= true then
+    snapshot_cursor()
     return
+  else
+    snapshot_cursor()
   end
 
   local ns_id = vim.api.nvim_create_namespace(namespace_name)
-  local buffer_number = vim.fn.bufnr "%"
-  local line_num = vim.fn.winline()
 
   local cursor_line = utils.get_current_line()
   local lcol = utils.win_get_cursor_col(0)
@@ -107,25 +119,25 @@ flare.setup = function(opts)
 
   autocmd("BufWinEnter", {
     pattern = { "*" },
-    callback = flare.cursor_moved,
+    callback = function(args)
+      flare.cursor_moved(args, true)
+    end,
     group = "flare",
   })
 
   autocmd("FocusGained", {
     pattern = { "*" },
-    callback = flare.cursor_moved,
+    callback = function(args)
+      flare.cursor_moved(args, true)
+    end,
     group = "flare",
   })
 
   autocmd("BufEnter", {
     pattern = { "*" },
-    callback = flare.cursor_moved,
-    group = "flare",
-  })
-
-  autocmd("WinEnter", {
-    pattern = { "*" },
-    callback = flare.cursor_moved,
+    callback = function(args)
+      flare.cursor_moved(args, true)
+    end,
     group = "flare",
   })
 
