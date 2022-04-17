@@ -46,6 +46,9 @@ local highlight = function(buffer_number, ns_id, line_num, cursor_line, lcol)
 end
 
 local should_highlight = function(cursor_line)
+  if options.enabled ~= true then
+    return
+  end
   local floating = utils.is_floating_window(0)
   if floating == true then
     return false
@@ -78,8 +81,7 @@ local clear_history = function()
   last_cursor_col = nil
 end
 
-local cursor_moved = function(args)
-  utils.dump(args)
+flare.cursor_moved = function(args)
   if should_highlight() ~= true then
     return
   end
@@ -99,45 +101,39 @@ end
 
 flare.setup = function(opts)
   local user_opts = opts or {}
-  vim.tbl_extend("force", options, user_opts)
+  options = vim.tbl_extend("force", options, user_opts)
 
   augroup("flare", { clear = true })
 
-  autocmd("BufWinEnter,FocusGained,BufEnter", {
+  autocmd("BufWinEnter", {
     pattern = { "*" },
-    callback = cursor_moved,
+    callback = flare.cursor_moved,
     group = "flare",
   })
 
   autocmd("FocusGained", {
     pattern = { "*" },
-    callback = cursor_moved,
+    callback = flare.cursor_moved,
     group = "flare",
   })
 
   autocmd("BufEnter", {
     pattern = { "*" },
-    callback = cursor_moved,
+    callback = flare.cursor_moved,
     group = "flare",
   })
 
   autocmd("WinEnter", {
     pattern = { "*" },
-    callback = cursor_moved,
+    callback = flare.cursor_moved,
     group = "flare",
   })
 
   autocmd("CursorMoved", {
     pattern = { "*" },
-    callback = cursor_moved,
+    callback = flare.cursor_moved,
     group = "flare",
   })
-
-  -- autocmd("FocusLost", {
-  --   pattern = { "*" },
-  --   callback = clear_history,
-  --   group = "flare",
-  -- })
 end
 
 return flare
