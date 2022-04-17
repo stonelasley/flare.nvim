@@ -1,1 +1,1 @@
-lua myluamodule = require("flare")
+lua myluamodule = require("flare").setup({})
