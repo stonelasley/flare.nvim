@@ -15,18 +15,6 @@ utils.win_get_cursor = function(window)
   return a.nvim_win_get_cursor(win)
 end
 
-utils.win_get_cursor_row = function(window)
-  local win = window or 0
-  local row, _ = unpack(a.nvim_win_get_cursor(win))
-  return row
-end
-
-utils.win_get_cursor_col = function(window)
-  local win = window or 0
-  local _, column = unpack(a.nvim_win_get_cursor(win))
-  return column
-end
-
 utils.get_current_line = function()
   return a.nvim_get_current_line()
 end

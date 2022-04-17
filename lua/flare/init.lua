@@ -24,15 +24,15 @@ local options = {
 }
 
 local highlight = function(buffer_number, ns_id, line_num, lcol)
-  local cursor_line = utils.get_current_line()
+  local current_row_str = utils.get_current_line()
   for i = options.expanse, 1, -1 do
-    local left_bound = lcol - i
+    local left_bound = (lcol - i)
+    local right_bound = lcol + i
     if left_bound < 0 then
       left_bound = 0
     end
-    local right_bound = lcol + i
 
-    local lstr = cursor_line:sub(left_bound + 1, right_bound + 1)
+    local lstr = current_row_str:sub(left_bound + 1, right_bound + 1)
     if lstr == nil or lstr == "" then
       lstr = utils.empty_str(i)
     end
@@ -99,19 +99,19 @@ end
 
 flare.cursor_moved = function(args, force)
   local forced = force or false
-  local line_num = vim.fn.line "."
+  local cursor_row, cursor_col = unpack(utils.win_get_cursor(0))
+  utils.dump({ cursor_row, cursor_col })
   local buffer_number = vim.fn.bufnr "%"
   local ns_id = vim.api.nvim_create_namespace(namespace_name)
 
-  local lcol = utils.win_get_cursor_col(0)
-  if should_highlight(buffer_number, line_num, lcol, forced) ~= true then
+  if should_highlight(buffer_number, cursor_row, cursor_col, forced) ~= true then
     snapshot_cursor()
     return
   else
     snapshot_cursor()
   end
 
-  local status, err = pcall(highlight, buffer_number, ns_id, line_num, lcol)
+  local status, err = pcall(highlight, buffer_number, ns_id, cursor_row, cursor_col)
   if err ~= nil then
     utils.dump(err)
   end
