@@ -11,7 +11,7 @@ local namespace_name = "flare"
 local options = {
   enabled = true,
   hl_group = "IncSearch",
-  x_threshold = 5,
+  x_threshold = 10,
   y_threshold = 5,
   expanse = 10,
   file_ignore = {
@@ -50,7 +50,7 @@ flare.highlightable_y_motion = function(cursor_row, last_cursor_line)
   local last_line = last_cursor_line or 0
   local current_line = cursor_row or 0
   local line_diff = math.abs(last_line - current_line)
-  return line_diff >= options.y_threshold
+  return line_diff > options.y_threshold
 end
 
 flare.highlightable_x_motion = function(cursor_row, last_cursor_line, cursor_col, last_cursor_col)
