@@ -15,10 +15,12 @@ local options = {
   y_threshold = 5,
   expanse = 10,
   file_ignore = {
-    "NvimTree",
+    "dashboard",
     "fugitive",
+    "NvimTree",
     "TelescopePrompt",
     "TelescopeResult",
+    "Trouble",
   },
 }
 
@@ -114,6 +116,8 @@ flare.cursor_moved = function(args, force)
   local status, err = pcall(highlight, buffer_number, ns_id, current_row_str, cursor_row, cursor_col)
   if err ~= nil then
     utils.dump(err)
+    print "ARGS"
+    utils.dump(args)
   end
 end
 
