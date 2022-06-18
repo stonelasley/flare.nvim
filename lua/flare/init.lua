@@ -10,7 +10,8 @@ local namespace_name = "flare"
 
 local options = {
   enabled = true,
-  hl_group = "IncSearch",
+  hl_group = "FlareHighlight",
+  hl_group_ul = "FlareUnderline",
   x_threshold = 10,
   y_threshold = 5,
   fade = true,
@@ -23,6 +24,7 @@ local options = {
     "TelescopeResult",
     "Trouble",
   },
+  underline = false
 }
 
 local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol)
@@ -38,8 +40,12 @@ local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol
     if lstr == nil or lstr == "" then
       lstr = utils.empty_str(i)
     end
+    local hl_group = options.hl_group
+    if options.underline == true then
+      hl_group = options.hl_group_ul
+    end
     local opts = {
-      virt_text = { { lstr, options.hl_group } },
+      virt_text = { { lstr, hl_group } },
       virt_text_pos = "overlay",
       hl_mode = "blend",
     }
@@ -132,6 +138,11 @@ end
 flare.setup = function(opts)
   local user_opts = opts or {}
   options = vim.tbl_extend("force", options, user_opts)
+
+  vim.cmd([[
+      highlight! default link FlareHighlight IncSearch 
+      highlight FlareUnderline guibg=NONE guifg=NONE gui=underline guisp=red ctermfg=NONE ctermbg=NONE cterm=underline
+  ]])
 
   augroup("flare", { clear = true })
 
