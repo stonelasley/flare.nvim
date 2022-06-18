@@ -14,6 +14,7 @@ local options = {
   hl_group_ul = "FlareUnderline",
   x_threshold = 10,
   y_threshold = 5,
+  timeout = 150,
   fade = true,
   expanse = 10,
   file_ignore = {
@@ -50,11 +51,11 @@ local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol
       hl_mode = "blend",
     }
     local mark_id = vim.api.nvim_buf_set_extmark(buffer_number, ns_id, line_num - 1, left_bound, opts)
-    local delay = 250
+    local timeout = options.timeout
     if options.fade then
-      delay = math.floor(250/ i)
+      timeout = math.floor(timeout / i)
     end
-    vim.fn.timer_start(delay, function()
+    vim.fn.timer_start(timeout, function()
       vim.api.nvim_buf_del_extmark(buffer_number, ns_id, mark_id)
     end)
     if not options.fade then

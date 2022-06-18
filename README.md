@@ -46,6 +46,7 @@ require('flare').setup {
   },
   fade = true, -- if false will flash highlight for entire area similar to 'vim.highlight.on_yank'
   underline = false, -- if true will use more subtle underline highlight. Underline highlight can also be accomplished by setting hl_group
+  timeout = 150, -- timeout delay
 }
 ```
 
