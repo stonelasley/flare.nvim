@@ -109,9 +109,8 @@ flare.cursor_moved = function(args, force)
   if should_highlight(cursor_row, cursor_col, forced) ~= true then
     snapshot_cursor()
     return
-  else
-    snapshot_cursor()
   end
+  snapshot_cursor()
 
   local status, err = pcall(highlight, buffer_number, ns_id, current_row_str, cursor_row, cursor_col)
   if err ~= nil then
