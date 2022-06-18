@@ -128,12 +128,7 @@ flare.cursor_moved = function(args, force)
   end
   snapshot_cursor()
 
-  local status, err = pcall(highlight, buffer_number, ns_id, current_row_str, cursor_row, cursor_col)
-  if err ~= nil then
-    utils.dump(err)
-    print "ARGS"
-    utils.dump(args)
-  end
+  pcall(highlight, buffer_number, ns_id, current_row_str, cursor_row, cursor_col)
 end
 
 flare.setup = function(opts)
