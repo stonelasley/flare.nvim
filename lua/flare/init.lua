@@ -13,6 +13,7 @@ local options = {
   hl_group = "IncSearch",
   x_threshold = 10,
   y_threshold = 5,
+  fade = true,
   expanse = 10,
   file_ignore = {
     "dashboard",
@@ -29,6 +30,7 @@ local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol
     local left_bound = (lcol - i)
     local right_bound = lcol + i
     if left_bound < 0 then
+      right_bound = right_bound + math.abs(left_bound)
       left_bound = 0
     end
 
@@ -42,9 +44,16 @@ local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol
       hl_mode = "blend",
     }
     local mark_id = vim.api.nvim_buf_set_extmark(buffer_number, ns_id, line_num - 1, left_bound, opts)
-    vim.fn.timer_start(math.floor(250 / i), function()
+    local delay = 250
+    if options.fade then
+      delay = math.floor(250/ i)
+    end
+    vim.fn.timer_start(delay, function()
       vim.api.nvim_buf_del_extmark(buffer_number, ns_id, mark_id)
     end)
+    if not options.fade then
+      break
+    end
   end
 end
 

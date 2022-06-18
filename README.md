@@ -44,6 +44,7 @@ require('flare').setup {
     "TelescopePrompt",
     "TelescopeResult",
   },
+  fade = true -- if false will flash highlight for entire area similar to 'vim.highlight.on_yank'
 }
 ```
 
