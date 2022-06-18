@@ -55,11 +55,11 @@ flare.highlightable_y_motion = function(cursor_row, last_cursor_line)
   return line_diff > options.y_threshold
 end
 
-flare.highlightable_x_motion = function(cursor_row, last_cursor_line, cursor_col, last_cursor_col)
-  if cursor_row ~= last_cursor_line then
+flare.highlightable_x_motion = function(cursor_row, prev_cursor_line, cursor_col, prev_cursor_col)
+  if cursor_row ~= prev_cursor_line then
     return false
   end
-  local last_col = last_cursor_col or 0
+  local last_col = prev_cursor_col or 0
   local current_col = cursor_col or 0
   local cursor_diff = math.abs(last_col - current_col)
   return cursor_diff > options.x_threshold
