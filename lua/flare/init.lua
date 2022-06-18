@@ -65,7 +65,7 @@ flare.highlightable_x_motion = function(cursor_row, prev_cursor_line, cursor_col
   return cursor_diff > options.x_threshold
 end
 
-local should_highlight = function(cursor_row, cursor_col, cursor_row_length, force)
+local should_highlight = function(cursor_row, cursor_col, force)
   if options.enabled ~= true then
     return false
   end
@@ -106,7 +106,7 @@ flare.cursor_moved = function(args, force)
   local buffer_number = vim.fn.bufnr "%"
   local ns_id = vim.api.nvim_create_namespace(namespace_name)
 
-  if should_highlight(cursor_row, cursor_col, #current_row_str, forced) ~= true then
+  if should_highlight(cursor_row, cursor_col, forced) ~= true then
     snapshot_cursor()
     return
   else
