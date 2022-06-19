@@ -51,11 +51,11 @@ local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol
       hl_mode = "blend",
     }
     local mark_id = vim.api.nvim_buf_set_extmark(buffer_number, ns_id, line_num - 1, left_bound, opts)
-    local timeout = options.timeout
+    local delay = options.timeout
     if options.fade then
-      timeout = math.floor(timeout / i)
+      delay = math.floor(options.timeout / i)
     end
-    vim.fn.timer_start(timeout, function()
+    vim.fn.timer_start(delay, function()
       vim.api.nvim_buf_del_extmark(buffer_number, ns_id, mark_id)
     end)
     if not options.fade then
