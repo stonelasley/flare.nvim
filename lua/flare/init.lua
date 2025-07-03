@@ -56,7 +56,9 @@ local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol
       delay = math.floor(options.timeout / i)
     end
     vim.fn.timer_start(delay, function()
-      vim.api.nvim_buf_del_extmark(buffer_number, ns_id, mark_id)
+      if vim.api.nvim_buf_is_valid(buffer_number) then
+        pcall(vim.api.nvim_buf_del_extmark, buffer_number, ns_id, mark_id)
+      end
     end)
     if not options.fade then
       break
