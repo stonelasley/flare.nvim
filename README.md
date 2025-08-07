@@ -35,6 +35,7 @@ default configuration
 require('flare').setup {
   enabled = true, -- disable highlighting
   hl_group = "IncSearch", -- set highlight group used for highlight
+  hl_group_ul = "FlareUnderline", -- highlight group when underline is enabled
   x_threshold = 10, -- column changes greater than this number trigger highlight
   y_threshold = 5,  -- row changes greater than this number trigger highlight
   expanse = 10,  -- highlight will expand to the left and right of cursor up to this amount (depending on space available)
@@ -49,6 +50,8 @@ require('flare').setup {
   timeout = 150, -- timeout delay
 }
 ```
+
+`hl_group_ul` defines the highlight group used when `underline = true` and can be overridden to match your color scheme.
 
 ## Contributing
 
