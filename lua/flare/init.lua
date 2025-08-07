@@ -1,12 +1,14 @@
 local utils = require "flare.utils"
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
+local command = vim.api.nvim_create_user_command
 
 local flare = {}
 local last_cursor_row = 0
 local last_cursor_col = 0
 
 local namespace_name = "flare"
+local ns_id = vim.api.nvim_create_namespace(namespace_name)
 
 local options = {
   enabled = true,
@@ -25,7 +27,8 @@ local options = {
     "TelescopeResult",
     "Trouble",
   },
-  underline = false
+  underline = false,
+  highlight_on_enter = true,
 }
 
 local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol)
@@ -122,7 +125,6 @@ flare.cursor_moved = function(args, force)
   local cursor_row, cursor_col = unpack(utils.win_get_cursor(0))
   local current_row_str = utils.get_current_line()
   local buffer_number = vim.fn.bufnr "%"
-  local ns_id = vim.api.nvim_create_namespace(namespace_name)
 
   if should_highlight(cursor_row, cursor_col, forced) ~= true then
     snapshot_cursor()
@@ -133,29 +135,74 @@ flare.cursor_moved = function(args, force)
   pcall(highlight, buffer_number, ns_id, current_row_str, cursor_row, cursor_col)
 end
 
+flare.toggle = function()
+  options.enabled = not options.enabled
+  if options.enabled then
+    flare.cursor_moved(nil, true)
+  end
+end
+
+flare.set_threshold = function(axis, value)
+  if not axis or not value then
+    vim.notify("Usage: FlareSetThreshold <x|y> <number>", vim.log.levels.ERROR)
+    return
+  end
+
+  if axis ~= "x" and axis ~= "y" then
+    vim.notify("Invalid axis: " .. axis .. ". Must be 'x' or 'y'", vim.log.levels.ERROR)
+    return
+  end
+
+  local num = tonumber(value)
+  if num == nil then
+    vim.notify("Invalid number: " .. value, vim.log.levels.ERROR)
+    return
+  end
+
+  if axis == "x" then
+    options.x_threshold = num
+  elseif axis == "y" then
+    options.y_threshold = num
+  end
+  flare.cursor_moved(nil, true)
+end
+
 flare.setup = function(opts)
   local user_opts = opts or {}
   options = vim.tbl_extend("force", options, user_opts)
+  flare._options = options
 
-  vim.cmd([[
-      highlight! default link FlareHighlight IncSearch 
+  vim.cmd [[
+      highlight! default link FlareHighlight IncSearch
       highlight FlareUnderline guibg=NONE guifg=NONE gui=underline guisp=red ctermfg=NONE ctermbg=NONE cterm=underline
-  ]])
+  ]]
 
   augroup("flare", { clear = true })
 
-  autocmd({ "BufWinEnter", "FocusGained", "BufEnter" }, {
-    pattern = { "*" },
-    callback = function(args)
-      flare.cursor_moved(args, true)
-    end,
-    group = "flare",
-  })
+  if options.highlight_on_enter == true then
+    autocmd({ "BufWinEnter", "FocusGained", "BufEnter", "WinEnter" }, {
+      pattern = { "*" },
+      callback = function(args)
+        flare.cursor_moved(args, true)
+      end,
+      group = "flare",
+    })
+  end
 
   autocmd("CursorMoved", {
     pattern = { "*" },
     callback = flare.cursor_moved,
     group = "flare",
+  })
+  command("FlareToggle", flare.toggle, { force = true })
+  command("FlareSetThreshold", function(cmd_opts)
+    flare.set_threshold(cmd_opts.fargs[1], cmd_opts.fargs[2])
+  end, {
+    nargs = "*",
+    complete = function()
+      return { "x", "y" }
+    end,
+    force = true,
   })
 end
 
