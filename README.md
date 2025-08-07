@@ -53,6 +53,11 @@ require('flare').setup {
 
 `hl_group_ul` defines the highlight group used when `underline = true` and can be overridden to match your color scheme.
 
+### Commands 
+- `:FlareToggle` toggles highlighting.
+- `:FlareSetThreshold x 15` sets the horizontal movement threshold to 15 columns.
+- `:FlareSetThreshold y 3` sets the vertical movement threshold to 3 lines.
+
 ## Contributing
 
 All contributions are welcome! Just open a pull request.
