@@ -29,6 +29,15 @@ use {
 }
 ```
 
+Using [LazyVim](https://github.com/LazyVim/LazyVim)
+
+```lua
+{
+  'stonelasley/flare.nvim',
+  opts = {}
+}
+```
+
 ### Flare setup
 default configuration
 ```lua
