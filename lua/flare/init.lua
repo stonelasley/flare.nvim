@@ -18,7 +18,7 @@ local options = {
   y_threshold = 5,
   timeout = 150,
   fade = true,
-  fade_speed = 2.0,
+  fade_speed = 0.7,
   expanse = 10,
   file_ignore = {
     "dashboard",
@@ -168,6 +168,22 @@ flare.set_threshold = function(axis, value)
   flare.cursor_moved(nil, true)
 end
 
+flare.set_fade_speed = function(value)
+  if not value then
+    vim.notify("Usage: FlareSetFadeSpeed <number>", vim.log.levels.ERROR)
+    return
+  end
+
+  local num = tonumber(value)
+  if num == nil or num <= 0 then
+    vim.notify("Invalid fade speed: " .. value .. ". Must be a positive number", vim.log.levels.ERROR)
+    return
+  end
+
+  options.fade_speed = num
+  flare.cursor_moved(nil, true)
+end
+
 flare.setup = function(opts)
   local user_opts = opts or {}
   options = vim.tbl_extend("force", options, user_opts)
@@ -203,6 +219,12 @@ flare.setup = function(opts)
     complete = function()
       return { "x", "y" }
     end,
+    force = true,
+  })
+  command("FlareSetFadeSpeed", function(cmd_opts)
+    flare.set_fade_speed(cmd_opts.fargs[1])
+  end, {
+    nargs = 1,
     force = true,
   })
 end

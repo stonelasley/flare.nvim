@@ -260,5 +260,45 @@ describe("flare", function()
       -- Test that cursor_moved was called each time
       assert.stub(cursor_stub).was.called.at_least(2)
     end)
+
+    it("set_fade_speed updates fade_speed value", function()
+      local cursor_stub = stub(sut, "cursor_moved")
+      
+      -- Test valid fade speed
+      sut.set_fade_speed("2.5")
+      assert.equals(2.5, sut._options.fade_speed)
+      
+      -- Test another valid fade speed
+      sut.set_fade_speed("0.5")
+      assert.equals(0.5, sut._options.fade_speed)
+      
+      -- Test that cursor_moved was called each time
+      assert.stub(cursor_stub).was.called.at_least(2)
+    end)
+
+    it("set_fade_speed handles invalid input", function()
+      local notify_stub = stub(vim, "notify")
+      local original_speed = sut._options.fade_speed
+      
+      -- Test invalid number
+      sut.set_fade_speed("invalid")
+      assert.equals(original_speed, sut._options.fade_speed)
+      assert.stub(notify_stub).was.called_with("Invalid fade speed: invalid. Must be a positive number", vim.log.levels.ERROR)
+      
+      -- Test zero
+      sut.set_fade_speed("0")
+      assert.equals(original_speed, sut._options.fade_speed)
+      assert.stub(notify_stub).was.called_with("Invalid fade speed: 0. Must be a positive number", vim.log.levels.ERROR)
+      
+      -- Test negative number
+      sut.set_fade_speed("-1")
+      assert.equals(original_speed, sut._options.fade_speed)
+      assert.stub(notify_stub).was.called_with("Invalid fade speed: -1. Must be a positive number", vim.log.levels.ERROR)
+      
+      -- Test missing argument
+      sut.set_fade_speed()
+      assert.equals(original_speed, sut._options.fade_speed)
+      assert.stub(notify_stub).was.called_with("Usage: FlareSetFadeSpeed <number>", vim.log.levels.ERROR)
+    end)
   end)
 end)
