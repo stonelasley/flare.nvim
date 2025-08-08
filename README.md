@@ -1,78 +1,195 @@
-# flare.nvim
+# 🔥 flare.nvim
 
-Configurable cursor highlighting using neovims virtual text.
+**Highlight cursor jumps** with smooth animations that help you track cursor movement across your code.
 
-![Preview](https://user-images.githubusercontent.com/1717836/163735786-bbbcb23f-662a-4213-a2c4-b84440766324.gif)
+[![Neovim](https://img.shields.io/badge/Neovim%20≥%200.7-green.svg?style=flat-square&logo=neovim)](https://github.com/neovim/neovim)
+[![Lua](https://img.shields.io/badge/Made%20with%20Lua-blue.svg?style=flat-square&logo=lua)](https://lua.org)
 
-## Installation
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/1717836/163735786-bbbcb23f-662a-4213-a2c4-b84440766324.gif" alt="flare.nvim in action" width="600"/>
+</p>
 
-[Neovim (v0.7.0)](https://github.com/neovim/neovim/releases/tag/v0.7.0) or the
-latest neovim nightly commit is required for `flare.nvim` to work.
+## ✨ Features
 
-Using [vim-plug](https://github.com/junegunn/vim-plug)
+- **Smart cursor tracking** - Highlights only significant cursor jumps (customizable thresholds)
+- **Smooth fade animations** - Simple, non-intrusive visual feedback
+- **Highly configurable** - Adjust colors, animation speed, trigger thresholds, and more
+- **Performance optimized** - Minimal overhead with automatic cleanup
+- **File-type aware** - Automatically disables in file trees, terminals, and popups
 
-```viml
-Plug 'stonelasley/flare.nvim'
-```
+## 📦 Installation
 
-Using [dein](https://github.com/Shougo/dein.vim)
-
-```viml
-call dein#add('stonelasley/flare.nvim')
-```
-Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
-
-```lua
-use {
-  'stonelasley/flare.nvim',
-  config = function() require('flare').setup() end
-}
-```
-
-Using [LazyVim](https://github.com/LazyVim/LazyVim)
+<details>
+<summary><b>lazy.nvim</b> (recommended)</summary>
 
 ```lua
 {
   'stonelasley/flare.nvim',
-  opts = {}
+  event = "CursorMoved",
+  opts = {
+    -- your configuration here (optional)
+  }
 }
 ```
+</details>
 
-### Flare setup
-default configuration
+<details>
+<summary><b>packer.nvim</b></summary>
+
 ```lua
-require('flare').setup {
-  enabled = true, -- disable highlighting
-  hl_group = "IncSearch", -- set highlight group used for highlight
-  hl_group_ul = "FlareUnderline", -- highlight group when underline is enabled
-  x_threshold = 10, -- column changes greater than this number trigger highlight
-  y_threshold = 5,  -- row changes greater than this number trigger highlight
-  expanse = 10,  -- highlight will expand to the left and right of cursor up to this amount (depending on space available)
-  file_ignore = { -- suppress highlighting for files of this type
+use {
+  'stonelasley/flare.nvim',
+  config = function() 
+    require('flare').setup()
+  end
+}
+```
+</details>
+
+<details>
+<summary><b>vim-plug</b></summary>
+
+```viml
+Plug 'stonelasley/flare.nvim'
+
+" In your init.lua or after plugins load:
+lua require('flare').setup()
+```
+</details>
+
+<details>
+<summary><b>dein</b></summary>
+
+```viml
+call dein#add('stonelasley/flare.nvim')
+
+" In your init.lua or after plugins load:
+lua require('flare').setup()
+```
+</details>
+
+## ⚡ Quick Start
+
+No configuration needed! Just install and flare.nvim will start highlighting cursor jumps with sensible defaults.
+
+```lua
+-- Optional: customize to your liking
+require('flare').setup({
+  -- See configuration section for all options
+})
+```
+
+## ⚙️ Configuration
+
+### Default Settings
+
+```lua
+require('flare').setup({
+  enabled = true,              -- Enable/disable the plugin
+  hl_group = "IncSearch",      -- Highlight group for the cursor indicator
+  hl_group_ul = "FlareUnderline", -- Highlight group for underline mode
+  x_threshold = 10,            -- Minimum horizontal jump distance to trigger
+  y_threshold = 5,             -- Minimum vertical jump distance to trigger
+  expanse = 10,                -- Width of the highlight area
+  file_ignore = {              -- File types where flare is disabled
     "NvimTree",
-    "fugitive",
+    "fugitive", 
     "TelescopePrompt",
     "TelescopeResult",
   },
-  fade = true, -- if false will flash highlight for entire area similar to 'vim.highlight.on_yank'
-  fade_speed = 0.7, -- speed of fade animation (higher = faster fade, lower = slower fade)
-  underline = false, -- if true will use more subtle underline highlight. Underline highlight can also be accomplished by setting hl_group
-  timeout = 150, -- timeout delay
-}
+  fade = true,                 -- Enable fade animation (false = flash effect)
+  fade_speed = 1.0,            -- Animation speed (higher = faster)
+  underline = false,           -- Use underline instead of background highlight
+  timeout = 150,               -- Delay before showing highlight (ms)
+})
 ```
 
-`hl_group_ul` defines the highlight group used when `underline = true` and can be overridden to match your color scheme.
+### Customization Examples
 
-### Commands 
-- `:FlareToggle` toggles highlighting.
-- `:FlareSetThreshold x 15` sets the horizontal movement threshold to 15 columns.
-- `:FlareSetThreshold y 3` sets the vertical movement threshold to 3 lines.
-- `:FlareSetFadeSpeed 2.0` sets the fade animation speed to 2.0 (higher = faster).
+<details>
+<summary><b>Subtle underline style</b></summary>
 
-## Contributing
+```lua
+require('flare').setup({
+  underline = true,
+  hl_group_ul = "CursorLine",  -- Or any highlight group you prefer
+})
+```
+</details>
 
-All contributions are welcome! Just open a pull request.
+<details>
+<summary><b>Flash effect (no fade)</b></summary>
 
-## Related and Inspirational Projects
+```lua
+require('flare').setup({
+  fade = false,
+  timeout = 100,
+})
+```
+</details>
 
-- [beacon.nvim](https://github.com/DanilaMihailov/beacon.nvim)
+<details>
+<summary><b>Only highlight large jumps</b></summary>
+
+```lua
+require('flare').setup({
+  x_threshold = 20,  -- Only highlight jumps > 20 columns
+  y_threshold = 10,  -- Only highlight jumps > 10 lines
+})
+```
+</details>
+
+<details>
+<summary><b>Custom highlight colors</b></summary>
+
+```lua
+-- Define your custom highlight group
+vim.api.nvim_set_hl(0, 'MyFlareHighlight', { 
+  bg = '#ff9e64',  -- Orange background
+  fg = '#1a1b26',  -- Dark foreground
+  bold = true 
+})
+
+require('flare').setup({
+  hl_group = "MyFlareHighlight",
+})
+```
+</details>
+
+## 🎮 Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `:FlareToggle` | Toggle flare on/off | `:FlareToggle` |
+| `:FlareSetThreshold x [value]` | Set horizontal jump threshold | `:FlareSetThreshold x 15` |
+| `:FlareSetThreshold y [value]` | Set vertical jump threshold | `:FlareSetThreshold y 3` |
+| `:FlareSetFadeSpeed [value]` | Set fade animation speed | `:FlareSetFadeSpeed 2.0` |
+
+## 🎯 Use Cases
+
+- **Code navigation** - Never lose track of your cursor when jumping between functions
+- **Large file editing** - Essential for navigating files with thousands of lines
+- **Split window workflow** - Easily see which window has focus after switching
+- **Pair programming** - Help others follow your cursor movement during screen sharing
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+- Report bugs or request features via [issues](https://github.com/stonelasley/flare.nvim/issues)
+- Submit pull requests with improvements
+- Share your custom configurations
+
+## 📝 License
+
+MIT
+
+## 🌟 Acknowledgments
+
+Inspired by:
+- [beacon.nvim](https://github.com/DanilaMihailov/beacon.nvim) - Similar cursor tracking plugin
+
+---
+
+<p align="center">
+  Made with ❤️ for the Neovim community
+</p>
