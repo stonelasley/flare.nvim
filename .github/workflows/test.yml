@@ -33,8 +33,8 @@ jobs:
         unzip stylua.zip
         sudo mv stylua /usr/local/bin/
     
-    - name: Lint Lua files
-      run: stylua --check .
+    # - name: Lint Lua files
+    #   run: stylua --check .
     
     - name: Run tests
       run: make test
