@@ -18,6 +18,7 @@ local options = {
   y_threshold = 5,
   timeout = 150,
   fade = true,
+  fade_speed = 2.0,
   expanse = 10,
   file_ignore = {
     "dashboard",
@@ -56,7 +57,7 @@ local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol
     local mark_id = vim.api.nvim_buf_set_extmark(buffer_number, ns_id, line_num - 1, left_bound, opts)
     local delay = options.timeout
     if options.fade then
-      delay = math.floor(options.timeout / i)
+      delay = math.floor((options.timeout / i) / options.fade_speed)
     end
     vim.fn.timer_start(delay, function()
       if vim.api.nvim_buf_is_valid(buffer_number) then

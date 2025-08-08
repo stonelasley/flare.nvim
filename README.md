@@ -55,6 +55,7 @@ require('flare').setup {
     "TelescopeResult",
   },
   fade = true, -- if false will flash highlight for entire area similar to 'vim.highlight.on_yank'
+  fade_speed = 1.0, -- speed of fade animation (higher = faster fade, lower = slower fade)
   underline = false, -- if true will use more subtle underline highlight. Underline highlight can also be accomplished by setting hl_group
   timeout = 150, -- timeout delay
 }
