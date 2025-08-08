@@ -139,6 +139,97 @@ describe("flare", function()
     -- end)
   end)
 
+  describe("fade_speed", function()
+    before_each(function()
+      -- Mock vim.api functions needed for highlighting
+      stub(vim.api, "nvim_buf_set_extmark", 1)
+      stub(vim.fn, "timer_start")
+      stub(vim.api, "nvim_buf_is_valid", true)
+      stub(vim.fn, "bufnr", 1)
+      stub(utils, "win_get_cursor", { 5, 10 })
+      stub(utils, "get_current_line", "test line content")
+      stub(utils, "is_floating_window", false)
+      stub(utils, "table_contains", false)
+      stub(utils, "filetype", "lua")
+    end)
+
+    it("should respect fade_speed setting for delay calculation", function()
+      local timer_calls = {}
+      stub(vim.fn, "timer_start", function(delay, callback)
+        table.insert(timer_calls, delay)
+        return 1
+      end)
+
+      -- Test with default fade_speed (1.0)
+      sut.setup { 
+        enabled = true, 
+        fade = true, 
+        fade_speed = 1.0, 
+        timeout = 150, 
+        expanse = 3 
+      }
+      
+      sut.cursor_moved(nil, true)
+      
+      -- With expanse=3, timeout=150, fade_speed=1.0
+      -- Expected delays: floor(150/3/1.0)=50, floor(150/2/1.0)=75, floor(150/1/1.0)=150
+      assert.same({ 50, 75, 150 }, timer_calls)
+
+      -- Reset and test with faster fade_speed (2.0)
+      timer_calls = {}
+      sut.setup { 
+        enabled = true, 
+        fade = true, 
+        fade_speed = 2.0, 
+        timeout = 150, 
+        expanse = 3 
+      }
+      
+      sut.cursor_moved(nil, true)
+      
+      -- With fade_speed=2.0, delays should be halved
+      -- Expected delays: floor(150/3/2.0)=25, floor(150/2/2.0)=37, floor(150/1/2.0)=75
+      assert.same({ 25, 37, 75 }, timer_calls)
+
+      -- Reset and test with slower fade_speed (0.5)
+      timer_calls = {}
+      sut.setup { 
+        enabled = true, 
+        fade = true, 
+        fade_speed = 0.5, 
+        timeout = 150, 
+        expanse = 3 
+      }
+      
+      sut.cursor_moved(nil, true)
+      
+      -- With fade_speed=0.5, delays should be doubled
+      -- Expected delays: floor(150/3/0.5)=100, floor(150/2/0.5)=150, floor(150/1/0.5)=300
+      assert.same({ 100, 150, 300 }, timer_calls)
+    end)
+
+    it("should use timeout value when fade is disabled", function()
+      local timer_calls = {}
+      stub(vim.fn, "timer_start", function(delay, callback)
+        table.insert(timer_calls, delay)
+        return 1
+      end)
+
+      sut.setup { 
+        enabled = true, 
+        fade = false, 
+        fade_speed = 2.0, 
+        timeout = 150, 
+        expanse = 3 
+      }
+      
+      sut.cursor_moved(nil, true)
+      
+      -- When fade is disabled, should only use timeout value once, ignoring fade_speed
+      assert.same({ 150 }, timer_calls)
+    end)
+  end)
+
   describe("commands", function()
     before_each(function()
       sut.setup { enabled = true }
@@ -168,6 +259,46 @@ describe("flare", function()
       
       -- Test that cursor_moved was called each time
       assert.stub(cursor_stub).was.called.at_least(2)
+    end)
+
+    it("set_fade_speed updates fade_speed value", function()
+      local cursor_stub = stub(sut, "cursor_moved")
+      
+      -- Test valid fade speed
+      sut.set_fade_speed("2.5")
+      assert.equals(2.5, sut._options.fade_speed)
+      
+      -- Test another valid fade speed
+      sut.set_fade_speed("0.5")
+      assert.equals(0.5, sut._options.fade_speed)
+      
+      -- Test that cursor_moved was called each time
+      assert.stub(cursor_stub).was.called.at_least(2)
+    end)
+
+    it("set_fade_speed handles invalid input", function()
+      local notify_stub = stub(vim, "notify")
+      local original_speed = sut._options.fade_speed
+      
+      -- Test invalid number
+      sut.set_fade_speed("invalid")
+      assert.equals(original_speed, sut._options.fade_speed)
+      assert.stub(notify_stub).was.called_with("Invalid fade speed: invalid. Must be a positive number", vim.log.levels.ERROR)
+      
+      -- Test zero
+      sut.set_fade_speed("0")
+      assert.equals(original_speed, sut._options.fade_speed)
+      assert.stub(notify_stub).was.called_with("Invalid fade speed: 0. Must be a positive number", vim.log.levels.ERROR)
+      
+      -- Test negative number
+      sut.set_fade_speed("-1")
+      assert.equals(original_speed, sut._options.fade_speed)
+      assert.stub(notify_stub).was.called_with("Invalid fade speed: -1. Must be a positive number", vim.log.levels.ERROR)
+      
+      -- Test missing argument
+      sut.set_fade_speed()
+      assert.equals(original_speed, sut._options.fade_speed)
+      assert.stub(notify_stub).was.called_with("Usage: FlareSetFadeSpeed <number>", vim.log.levels.ERROR)
     end)
   end)
 end)
