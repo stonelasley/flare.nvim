@@ -101,6 +101,9 @@ require('flare').setup({
   fade_speed = 1.0,            -- Animation speed (higher = faster)
   underline = false,           -- Use underline instead of background highlight
   timeout = 150,               -- Delay before showing highlight (ms)
+  gutter_enabled = false,      -- Enable gutter highlighting
+  gutter_sign = "🔥",          -- Sign/emoji to show in gutter
+  gutter_hl_group = "FlareGutter", -- Highlight group for gutter sign
 })
 ```
 
@@ -152,6 +155,18 @@ vim.api.nvim_set_hl(0, 'MyFlareHighlight', {
 
 require('flare').setup({
   hl_group = "MyFlareHighlight",
+})
+```
+</details>
+
+<details>
+<summary><b>Gutter highlighting with emoji</b></summary>
+
+```lua
+require('flare').setup({
+  gutter_enabled = true,
+  gutter_sign = "🔥",          -- Or any other emoji/character like "⚡", "●", "▶"
+  gutter_hl_group = "FlareGutter", -- Customize the highlight color
 })
 ```
 </details>

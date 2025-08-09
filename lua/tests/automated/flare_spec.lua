@@ -301,4 +301,70 @@ describe("flare", function()
       assert.stub(notify_stub).was.called_with("Usage: FlareSetFadeSpeed <number>", vim.log.levels.ERROR)
     end)
   end)
+
+  describe("gutter highlighting", function()
+    before_each(function()
+      stub(vim.api, "nvim_buf_set_extmark", 1)
+      stub(vim.fn, "timer_start")
+      stub(vim.api, "nvim_buf_is_valid", true)
+      stub(vim.fn, "bufnr", 1)
+      stub(utils, "win_get_cursor", { 5, 10 })
+      stub(utils, "get_current_line", "test line content")
+      stub(utils, "is_floating_window", false)
+      stub(utils, "table_contains", false)
+      stub(utils, "filetype", "lua")
+    end)
+
+    it("should not highlight gutter when disabled", function()
+      local extmark_stub = stub(vim.api, "nvim_buf_set_extmark", 1)
+      local clear_stub = stub(vim.api, "nvim_buf_clear_namespace")
+      
+      sut.setup({ 
+        enabled = true, 
+        gutter_enabled = false,
+        expanse = 1
+      })
+      
+      sut.cursor_moved(nil, true)
+      
+      -- Should be called once for regular highlight, not for gutter
+      assert.stub(extmark_stub).was.called(1)
+      assert.stub(clear_stub).was.not_called()
+    end)
+
+    it("should highlight gutter when enabled", function()
+      local extmark_calls = {}
+      local clear_calls = {}
+      
+      stub(vim.api, "nvim_buf_set_extmark", function(buf, ns, line, col, opts)
+        table.insert(extmark_calls, {buf, ns, line, col, opts})
+        return 1
+      end)
+      
+      stub(vim.api, "nvim_buf_clear_namespace", function(buf, ns, start_line, end_line)
+        table.insert(clear_calls, {buf, ns, start_line, end_line})
+      end)
+      
+      sut.setup({ 
+        enabled = true, 
+        gutter_enabled = true,
+        gutter_sign = "🔥",
+        gutter_hl_group = "FlareGutter",
+        expanse = 1  -- Reduce to make test simpler
+      })
+      
+      sut.cursor_moved(nil, true)
+      
+      -- Should be called for both regular highlight and gutter
+      assert.equals(2, #extmark_calls)
+      
+      -- Should clear gutter namespace before setting new mark
+      assert.equals(1, #clear_calls)
+      
+      -- Check gutter extmark has correct options
+      local gutter_call = extmark_calls[2]
+      assert.equals("🔥", gutter_call[5].sign_text)
+      assert.equals("FlareGutter", gutter_call[5].sign_hl_group)
+    end)
+  end)
 end)

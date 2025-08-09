@@ -9,6 +9,7 @@ local last_cursor_col = 0
 
 local namespace_name = "flare"
 local ns_id = vim.api.nvim_create_namespace(namespace_name)
+local gutter_ns_id = vim.api.nvim_create_namespace("flare_gutter")
 
 local options = {
   enabled = true,
@@ -30,6 +31,9 @@ local options = {
   },
   underline = false,
   highlight_on_enter = true,
+  gutter_enabled = false,
+  gutter_sign = "🔥",
+  gutter_hl_group = "FlareGutter",
 }
 
 local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol)
@@ -68,6 +72,36 @@ local highlight = function(buffer_number, ns_id, current_row_str, line_num, lcol
       break
     end
   end
+end
+
+local clear_gutter_highlights = function(buffer_number)
+  if vim.api.nvim_buf_is_valid(buffer_number) then
+    pcall(vim.api.nvim_buf_clear_namespace, buffer_number, gutter_ns_id, 0, -1)
+  end
+end
+
+local highlight_gutter = function(buffer_number, line_num)
+  if not options.gutter_enabled then
+    return
+  end
+
+  clear_gutter_highlights(buffer_number)
+
+  local opts = {
+    sign_text = options.gutter_sign,
+    sign_hl_group = options.gutter_hl_group,
+    number_hl_group = options.gutter_hl_group,
+  }
+  local mark_id = vim.api.nvim_buf_set_extmark(buffer_number, gutter_ns_id, line_num - 1, 0, opts)
+  
+  local delay = options.timeout
+  if options.fade then
+    delay = options.timeout
+  end
+  
+  vim.fn.timer_start(delay, function()
+    clear_gutter_highlights(buffer_number)
+  end)
 end
 
 flare.highlightable_y_motion = function(cursor_row, last_cursor_line)
@@ -134,6 +168,7 @@ flare.cursor_moved = function(args, force)
   snapshot_cursor()
 
   pcall(highlight, buffer_number, ns_id, current_row_str, cursor_row, cursor_col)
+  pcall(highlight_gutter, buffer_number, cursor_row)
 end
 
 flare.toggle = function()
@@ -192,6 +227,7 @@ flare.setup = function(opts)
   vim.cmd [[
       highlight! default link FlareHighlight IncSearch
       highlight FlareUnderline guibg=NONE guifg=NONE gui=underline guisp=red ctermfg=NONE ctermbg=NONE cterm=underline
+      highlight FlareGutter guifg=#ff6600 guibg=NONE gui=bold ctermfg=202 ctermbg=NONE cterm=bold
   ]]
 
   augroup("flare", { clear = true })
@@ -209,6 +245,15 @@ flare.setup = function(opts)
   autocmd("CursorMoved", {
     pattern = { "*" },
     callback = flare.cursor_moved,
+    group = "flare",
+  })
+  
+  autocmd({ "BufLeave", "WinLeave", "TabLeave" }, {
+    pattern = { "*" },
+    callback = function()
+      local buffer_number = vim.fn.bufnr "%"
+      clear_gutter_highlights(buffer_number)
+    end,
     group = "flare",
   })
   command("FlareToggle", flare.toggle, { force = true })
