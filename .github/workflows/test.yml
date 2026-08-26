@@ -1,0 +1,40 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        neovim_version: ['stable', 'nightly']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Neovim
+      uses: rhysd/action-setup-vim@v1
+      with:
+        neovim: true
+        version: ${{ matrix.neovim_version }}
+    
+    - name: Install Luarocks
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y luarocks
+    
+    - name: Install StyLua
+      run: |
+        curl -L https://github.com/JohnnyMorganz/StyLua/releases/latest/download/stylua-linux-x86_64.zip -o stylua.zip
+        unzip stylua.zip
+        sudo mv stylua /usr/local/bin/
+    
+    # - name: Lint Lua files
+    #   run: stylua --check .
+    
+    - name: Run tests
+      run: make test
